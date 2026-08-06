@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f2f4a" />
+  <meta name="theme-color" content="#0e3f6b" />
   <title>Tren Martínez</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -12,24 +12,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
     :root {
-      --bg: #f4f6f8;
+      --bg: #eef4f9;
       --card: #ffffff;
-      --text: #10202b;
-      --muted: #5b6b77;
-      --accent: #0a7d6b;
-      --accent-deep: #0f2f4a;
-      --line: #e4e9ee;
-      --shadow: 0 6px 24px rgba(15, 47, 74, 0.08);
+      --text: #0c2438;
+      --muted: #5b7488;
+      --accent: #1f97d6;
+      --accent-deep: #0e3f6b;
+      --line: #dbe7f0;
+      --shadow: 0 6px 24px rgba(14, 63, 107, 0.10);
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0c161e;
-        --card: #14232f;
-        --text: #eaf1f5;
-        --muted: #9fb2bf;
-        --accent: #24c4a8;
-        --accent-deep: #0a7d6b;
-        --line: #21343f;
+        --bg: #081521;
+        --card: #10222f;
+        --text: #e9f2f9;
+        --muted: #9db6c8;
+        --accent: #46b2e6;
+        --accent-deep: #0b5a92;
+        --line: #1d3242;
         --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
       }
     }
@@ -143,7 +143,7 @@
     .msg { text-align: center; color: var(--muted); padding: 28px 10px; }
     .refresh {
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; margin-top: 16px; padding: 12px;
+      width: 100%; margin: 0 0 20px; padding: 12px;
       border: 1px solid var(--line); border-radius: 12px;
       background: var(--card); color: var(--muted); font-size: 0.85rem;
       cursor: pointer; box-shadow: var(--shadow);
@@ -186,12 +186,12 @@
 
   <div id="hero"></div>
 
-  <h2 class="tit">Siguientes trenes</h2>
-  <div class="lista" id="lista"></div>
-
   <button class="refresh" id="refresh">
     <span id="refIcon">↻</span> <span id="refText">Actualizar</span>
   </button>
+
+  <h2 class="tit">Siguientes trenes</h2>
+  <div class="lista" id="lista"></div>
 
   <footer>
     Datos de <a href="https://www.horariostrenes.com.ar" target="_blank" rel="noopener">horariostrenes.com.ar</a>

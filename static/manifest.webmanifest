@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#0f2f4a",
-  "theme_color": "#0f2f4a",
+  "background_color": "#0e3f6b",
+  "theme_color": "#0e3f6b",
   "orientation": "portrait-primary",
   "categories": ["travel", "utilities"],
   "icons": [
