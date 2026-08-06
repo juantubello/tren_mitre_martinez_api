@@ -141,13 +141,20 @@
     }
 
     .msg { text-align: center; color: var(--muted); padding: 28px 10px; }
+    .refreshWrap { display: flex; justify-content: center; margin: 2px 0 22px; }
     .refresh {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; margin: 0 0 20px; padding: 12px;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: var(--card); color: var(--muted); font-size: 0.85rem;
-      cursor: pointer; box-shadow: var(--shadow);
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 11px 24px;
+      border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 13%, transparent);
+      color: var(--accent); font-size: 0.95rem; font-weight: 700;
+      cursor: pointer;
+      transition: transform .1s ease, background .15s ease;
     }
+    .refresh:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+    .refresh:active { transform: scale(0.95); }
+    .refresh svg { width: 18px; height: 18px; display: block; }
     .spin { animation: sp 0.8s linear infinite; }
     @keyframes sp { to { transform: rotate(360deg); } }
     footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 18px; }
@@ -159,7 +166,7 @@
     <img src="/icon.svg" alt="" />
     <div>
       <h1>Tren Martínez</h1>
-      <div class="sub">Línea Mitre · Tigre ⇄ Retiro</div>
+      <div class="sub" id="sub">Línea Mitre · hacia Retiro</div>
     </div>
   </header>
 
@@ -186,9 +193,15 @@
 
   <div id="hero"></div>
 
-  <button class="refresh" id="refresh">
-    <span id="refIcon">↻</span> <span id="refText">Actualizar</span>
-  </button>
+  <div class="refreshWrap">
+    <button class="refresh" id="refresh">
+      <svg id="refIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+        <path d="M21 3v6h-6" />
+      </svg>
+      <span id="refText">Actualizar</span>
+    </button>
+  </div>
 
   <h2 class="tit">Siguientes trenes</h2>
   <div class="lista" id="lista"></div>
@@ -241,6 +254,7 @@
       const hero = document.getElementById("hero");
       const lista = document.getElementById("lista");
       const icon = document.getElementById("refIcon");
+      document.getElementById("sub").textContent = `Línea Mitre · hacia ${state.sentido}`;
       icon.classList.add("spin");
       hero.innerHTML = '<div class="hero"><div class="cuando">Buscando trenes…</div></div>';
       lista.innerHTML = "";
