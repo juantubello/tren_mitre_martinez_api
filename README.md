@@ -1,48 +1,58 @@
-# API Horarios Tren
+# Tren Martínez — API + PWA
 
-API en FastAPI que devuelve los próximos trenes que pasan por una estación,
-a partir de los datos públicos de [horariostrenes.com.ar](https://www.horariostrenes.com.ar).
-Por defecto: estación **Martínez**, sentido **Retiro** (ramal Tigre ⇄ Retiro).
+Un solo servicio (FastAPI) que sirve:
+
+- una **PWA mobile-first** en `/` que muestra por defecto el próximo tren
+  **Martínez → Retiro** (con filtros de estación, sentido y día), y
+- la **API** bajo `/api` que scrapea los datos de
+  [horariostrenes.com.ar](https://www.horariostrenes.com.ar) (ramal Tigre ⇄ Retiro).
+
+Frontend y API viven en el **mismo origen**: el navegador llama a `/api/...` (rutas
+relativas), así que **no hace falta exponer un backend aparte**. Encaja con el patrón
+de Cloudflare Tunnel: se publica un único hostname → este servicio.
 
 ## Levantar con Docker (puerto aleatorio)
 
 ```bash
 docker compose up -d --build
-```
-
-El puerto de host es **aleatorio** (lo asigna Docker). Para saber cuál te tocó:
-
-```bash
 docker compose port api 8000
 ```
 
-Eso imprime algo como `0.0.0.0:63052`. Ese `63052` es el puerto a usar / apuntar
-desde tu servidor Linux.
+El puerto de host es **aleatorio** (lo asigna Docker). El segundo comando imprime
+algo como `0.0.0.0:50899`; ese `50899` es el puerto al que apuntás.
 
-## Uso
+Abrí la PWA en `http://localhost:<puerto>/`.
 
-```bash
-PORT=$(docker compose port api 8000 | cut -d: -f2)
-curl "http://localhost:$PORT/proximos"
+## Cloudflare Tunnel
+
+Como frontend y API son el mismo servicio, apuntás el tunnel a ese único puerto:
+
+```
+tren.tu-dominio.net -> http://127.0.0.1:<puerto>
 ```
 
-### Endpoints
+El navegador pega a `/api/proximos` sobre el mismo hostname; no se expone nada más.
+(Si preferís meterlo detrás de tu nginx como en pipiseries, un `location /api/` que
+haga proxy a este servicio funciona igual, sin tocar el frontend.)
 
-| Método | Ruta         | Descripción                                  |
-|--------|--------------|----------------------------------------------|
-| GET    | `/proximos`  | Próximo tren + siguientes por la estación    |
-| GET    | `/health`    | Healthcheck                                  |
-| GET    | `/docs`      | Documentación interactiva (Swagger)          |
+## Endpoints
 
-### Parámetros de `/proximos`
+| Método | Ruta            | Descripción                               |
+|--------|-----------------|-------------------------------------------|
+| GET    | `/`             | PWA (frontend)                            |
+| GET    | `/api/proximos` | Próximo tren + siguientes por la estación |
+| GET    | `/api/health`   | Healthcheck                               |
+| GET    | `/docs`         | Swagger (documentación interactiva)       |
 
-| Param      | Default        | Valores                          |
-|------------|----------------|----------------------------------|
-| `estacion` | `Martínez`     | nombre exacto de la estación     |
-| `sentido`  | `Retiro`       | `Retiro` \| `Tigre`              |
+### Parámetros de `/api/proximos`
+
+| Param      | Default        | Valores                            |
+|------------|----------------|------------------------------------|
+| `estacion` | `Martínez`     | nombre exacto de la estación       |
+| `sentido`  | `Retiro`       | `Retiro` \| `Tigre`                |
 | `ramal`    | `tigre-retiro` | ej. `tigre-retiro`, `mitre-retiro` |
-| `dia`      | `habil`        | `habil` \| `noHabil`             |
-| `limite`   | `5`            | 1..20                            |
+| `dia`      | `habil`        | `habil` \| `noHabil`               |
+| `limite`   | `6`            | 1..20                              |
 
 ### Respuesta de ejemplo
 
@@ -55,6 +65,20 @@ curl "http://localhost:$PORT/proximos"
   "proximos_trenes": [ { "hora": "21:09", "en_minutos": 2, "recorrido": ["..."] } ],
   "fuente": "https://www.horariostrenes.com.ar/..."
 }
+```
+
+Los trenes que ya pasaron hoy se corren al día siguiente (+24h), así que
+`proximos_trenes` siempre arranca por el próximo tren real.
+
+## Estructura
+
+```
+app/
+  main.py       # FastAPI: monta la PWA en / y la API en /api
+  scraper.py    # fetch (httpx + cache 60s) + parse + cálculo de próximos
+static/         # PWA: index.html, sw.js, manifest, iconos
+Dockerfile
+docker-compose.yml   # puerto de host ALEATORIO
 ```
 
 ## Comandos útiles

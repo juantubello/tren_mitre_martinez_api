@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f2f4a" />
+  <title>Tren Martínez</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #10202b;
+      --muted: #5b6b77;
+      --accent: #0a7d6b;
+      --accent-deep: #0f2f4a;
+      --line: #e4e9ee;
+      --shadow: 0 6px 24px rgba(15, 47, 74, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0c161e;
+        --card: #14232f;
+        --text: #eaf1f5;
+        --muted: #9fb2bf;
+        --accent: #24c4a8;
+        --accent-deep: #0a7d6b;
+        --line: #21343f;
+        --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px);
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 2px 14px;
+    }
+    header img { width: 34px; height: 34px; border-radius: 9px; }
+    header h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.02em; }
+    header .sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+
+    .filtros {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    label.field { display: block; }
+    label.field > span {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin: 0 0 5px 2px;
+    }
+    select {
+      width: 100%;
+      appearance: none;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .segment {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: var(--shadow);
+    }
+    .segment button {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 9px 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .segment button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+      color: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+    .hero .top { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; opacity: 0.9; }
+    .hero .hora { font-size: 3.4rem; font-weight: 700; line-height: 1; margin: 8px 0 2px; letter-spacing: -0.03em; }
+    .hero .cuando { font-size: 1.05rem; font-weight: 600; }
+    .hero .rec { font-size: 0.8rem; opacity: 0.85; margin-top: 12px; line-height: 1.4; }
+
+    h2.tit { font-size: 0.9rem; color: var(--muted); margin: 4px 2px 10px; font-weight: 600; }
+    .lista { display: grid; gap: 8px; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px 15px;
+      box-shadow: var(--shadow);
+    }
+    .item .h { font-size: 1.25rem; font-weight: 700; min-width: 62px; }
+    .item .m { font-size: 0.85rem; color: var(--muted); flex: 1; }
+    .item .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .msg { text-align: center; color: var(--muted); padding: 28px 10px; }
+    .refresh {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 16px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--card); color: var(--muted); font-size: 0.85rem;
+      cursor: pointer; box-shadow: var(--shadow);
+    }
+    .spin { animation: sp 0.8s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 18px; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/icon.svg" alt="" />
+    <div>
+      <h1>Tren Martínez</h1>
+      <div class="sub">Línea Mitre · Tigre ⇄ Retiro</div>
+    </div>
+  </header>
+
+  <div class="filtros">
+    <label class="field">
+      <span>Estación</span>
+      <select id="estacion"></select>
+    </label>
+    <label class="field">
+      <span>Sentido</span>
+      <div class="segment" id="sentido">
+        <button data-v="Retiro" class="active">→ Retiro</button>
+        <button data-v="Tigre">→ Tigre</button>
+      </div>
+    </label>
+    <label class="field">
+      <span>Día</span>
+      <div class="segment" id="dia">
+        <button data-v="habil" class="active">Hábil</button>
+        <button data-v="noHabil">Sáb / Dom / Fer.</button>
+      </div>
+    </label>
+  </div>
+
+  <div id="hero"></div>
+
+  <h2 class="tit">Siguientes trenes</h2>
+  <div class="lista" id="lista"></div>
+
+  <button class="refresh" id="refresh">
+    <span id="refIcon">↻</span> <span id="refText">Actualizar</span>
+  </button>
+
+  <footer>
+    Datos de <a href="https://www.horariostrenes.com.ar" target="_blank" rel="noopener">horariostrenes.com.ar</a>
+  </footer>
+
+  <script>
+    const ESTACIONES = ["Retiro","L. de la Torre","Belgrano C","Núñez","Rivadavia",
+      "Vte. López","Olivos","La Lucila","Martínez","Acassuso","San Isidro","Beccar",
+      "Victoria","Virreyes","San Fernando","Carupá","Tigre"];
+
+    const state = { estacion: "Martínez", sentido: "Retiro", dia: "habil" };
+
+    // Poblar estaciones
+    const selEst = document.getElementById("estacion");
+    for (const e of ESTACIONES) {
+      const o = document.createElement("option");
+      o.value = e; o.textContent = e;
+      if (e === state.estacion) o.selected = true;
+      selEst.appendChild(o);
+    }
+
+    function bindSegment(id, key) {
+      const box = document.getElementById(id);
+      box.querySelectorAll("button").forEach(b => {
+        b.addEventListener("click", () => {
+          box.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+          b.classList.add("active");
+          state[key] = b.dataset.v;
+          cargar();
+        });
+      });
+    }
+    bindSegment("sentido", "sentido");
+    bindSegment("dia", "dia");
+    selEst.addEventListener("change", () => { state.estacion = selEst.value; cargar(); });
+
+    function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+    function fmtMin(m) {
+      if (m <= 0) return "llegando";
+      if (m < 60) return `en ${m} min`;
+      const h = Math.floor(m / 60), mm = m % 60;
+      return mm ? `en ${h} h ${mm} min` : `en ${h} h`;
+    }
+
+    async function cargar() {
+      const hero = document.getElementById("hero");
+      const lista = document.getElementById("lista");
+      const icon = document.getElementById("refIcon");
+      icon.classList.add("spin");
+      hero.innerHTML = '<div class="hero"><div class="cuando">Buscando trenes…</div></div>';
+      lista.innerHTML = "";
+
+      const q = new URLSearchParams({
+        estacion: state.estacion, sentido: state.sentido,
+        ramal: "tigre-retiro", dia: state.dia, limite: 6
+      });
+      try {
+        const r = await fetch(`/api/proximos?${q}`);
+        if (!r.ok) throw new Error((await r.json().catch(()=>({}))).detail || r.statusText);
+        const d = await r.json();
+        const p = d.proximo_tren;
+        hero.innerHTML = `
+          <div class="hero">
+            <div class="top"><span>${esc(d.estacion)} → ${esc(d.sentido)}</span><span>consulta ${esc(d.hora_consulta)}</span></div>
+            <div class="hora">${esc(p.hora)}</div>
+            <div class="cuando">${fmtMin(p.en_minutos)}</div>
+            <div class="rec">${esc(p.recorrido.join(" · "))}</div>
+          </div>`;
+        lista.innerHTML = d.proximos_trenes.slice(1).map(t => `
+          <div class="item">
+            <div class="h">${esc(t.hora)}</div>
+            <div class="m">hacia ${esc(d.sentido)}</div>
+            <div class="badge">${esc(fmtMin(t.en_minutos))}</div>
+          </div>`).join("") || '<div class="msg">No hay más trenes por hoy.</div>';
+      } catch (e) {
+        hero.innerHTML = `<div class="hero"><div class="cuando">No se pudo cargar</div><div class="rec">${esc(e.message)}</div></div>`;
+      } finally {
+        icon.classList.remove("spin");
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", cargar);
+    cargar();
+    // refresco automático al volver a la app
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>

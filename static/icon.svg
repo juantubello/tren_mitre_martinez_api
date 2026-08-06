@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Tren Martínez">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="80" x2="920" y2="960" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f2f4a"/>
+      <stop offset="1" stop-color="#0a7d6b"/>
+    </linearGradient>
+    <linearGradient id="body" x1="330" y1="250" x2="700" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbe7ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <!-- cuerpo del tren -->
+  <rect x="332" y="250" width="360" height="470" rx="70" fill="url(#body)"/>
+  <!-- ventanilla -->
+  <rect x="384" y="316" width="256" height="150" rx="34" fill="#0f2f4a"/>
+  <!-- faros -->
+  <circle cx="420" cy="556" r="34" fill="#ffce3a"/>
+  <circle cx="604" cy="556" r="34" fill="#ffce3a"/>
+  <!-- trompa -->
+  <path d="M372 628h280l-40 78c-8 16-25 26-43 26H455c-18 0-35-10-43-26l-40-78Z" fill="#0a7d6b"/>
+  <!-- rieles / patas -->
+  <rect x="396" y="742" width="60" height="70" rx="16" fill="#0f2f4a"/>
+  <rect x="568" y="742" width="60" height="70" rx="16" fill="#0f2f4a"/>
+  <!-- via -->
+  <rect x="250" y="828" width="524" height="26" rx="13" fill="#ffce3a"/>
+</svg>

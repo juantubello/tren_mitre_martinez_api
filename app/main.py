@@ -1,54 +1,51 @@
 """
-API de horarios de tren (FastAPI).
+API + PWA de horarios de tren (FastAPI).
+
+- El frontend (PWA mobile-first) se sirve estático en `/`.
+- La API vive bajo `/api` (ej. `/api/proximos`), siguiendo la convención de que el
+  navegador siempre llama al mismo origen bajo `/api` (compatible con el reverse
+  proxy / Cloudflare Tunnel: nunca se expone el backend por separado).
 
 Devuelve, para una estación (por defecto Martínez, sentido Retiro), cuál es el
 próximo tren, en cuántos minutos llega y cuáles son los siguientes.
 """
 
 from datetime import datetime
+from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import APIRouter, FastAPI, HTTPException, Query
+from fastapi.staticfiles import StaticFiles
 
 from .scraper import TZ, calcular_proximos, fetch, parse
 
 app = FastAPI(
     title="API Horarios Tren",
-    description="Devuelve los próximos trenes que pasan por una estación, "
-    "a partir de los datos de horariostrenes.com.ar.",
-    version="1.0.0",
+    description="Próximos trenes por estación, a partir de horariostrenes.com.ar.",
+    version="1.1.0",
 )
 
-
-@app.get("/")
-def root():
-    return {
-        "servicio": "API Horarios Tren",
-        "ejemplo": "/proximos?estacion=Martínez&sentido=Retiro",
-        "docs": "/docs",
-    }
+api = APIRouter(prefix="/api")
 
 
-@app.get("/health")
+@api.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.get("/proximos")
+@api.get("/proximos")
 async def proximos(
     estacion: str = Query("Martínez", description="Estación a consultar"),
     sentido: str = Query("Retiro", description="Cabecera destino: Retiro o Tigre"),
     ramal: str = Query("tigre-retiro", description="Ramal, ej. tigre-retiro"),
     dia: str = Query("habil", description="habil | noHabil"),
-    limite: int = Query(5, ge=1, le=20, description="Cuántos próximos trenes listar"),
+    limite: int = Query(6, ge=1, le=20, description="Cuántos próximos trenes listar"),
 ):
     """Próximo tren y siguientes que pasan por la estación."""
     try:
         url, html = await fetch(ramal, estacion, sentido, dia)
     except httpx.HTTPError as e:
-        raise HTTPException(
-            status_code=502, detail=f"No se pudo consultar la fuente: {e}"
-        )
+        raise HTTPException(status_code=502, detail=f"No se pudo consultar la fuente: {e}")
 
     trenes = parse(html)
     if not trenes:
@@ -70,3 +67,10 @@ async def proximos(
         "proximos_trenes": lista[:limite],
         "fuente": url,
     }
+
+
+app.include_router(api)
+
+# El frontend (PWA) se sirve estático en la raíz. Debe ir DESPUÉS del router /api.
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
