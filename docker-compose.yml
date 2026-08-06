@@ -4,6 +4,10 @@ services:
     image: tren-api
     container_name: tren-api
     restart: unless-stopped
+    # DNS fijo (Cloudflare) para evitar fallas de resolución post-reboot.
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
     ports:
       # Puerto de host FIJO y bindeado SOLO a localhost: la app queda accesible
       # únicamente desde el server (http://127.0.0.1:53354), nunca desde la red/IP
