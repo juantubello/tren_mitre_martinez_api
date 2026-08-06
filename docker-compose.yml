@@ -5,9 +5,9 @@ services:
     container_name: tren-api
     restart: unless-stopped
     ports:
-      # Sin puerto de host fijo => Docker asigna uno ALEATORIO (efímero).
-      # Para saber cuál te tocó:  docker compose port api 8000
-      - "8000"
+      # Puerto de host FIJO. La app siempre queda en http://localhost:53354
+      # (dentro del contenedor sigue escuchando en 8000).
+      - "53354:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 30s

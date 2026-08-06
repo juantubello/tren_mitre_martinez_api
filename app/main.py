@@ -39,7 +39,7 @@ async def proximos(
     sentido: str = Query("Retiro", description="Cabecera destino: Retiro o Tigre"),
     ramal: str = Query("tigre-retiro", description="Ramal, ej. tigre-retiro"),
     dia: str = Query("habil", description="habil | noHabil"),
-    limite: int = Query(6, ge=1, le=20, description="Cuántos próximos trenes listar"),
+    limite: int = Query(6, ge=1, le=100, description="Cuántos próximos trenes listar"),
 ):
     """Próximo tren y siguientes que pasan por la estación."""
     try:

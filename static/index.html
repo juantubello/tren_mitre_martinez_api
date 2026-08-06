@@ -54,11 +54,24 @@
     header h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.02em; }
     header .sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 
+    .tripToggle {
+      width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+      border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      border-radius: 16px; padding: 13px 17px; margin-bottom: 14px;
+      cursor: pointer; text-align: left;
+      transition: transform .1s ease, background .15s ease;
+    }
+    .tripToggle:hover { background: color-mix(in srgb, var(--accent) 17%, transparent); }
+    .tripToggle:active { transform: scale(0.99); }
+    .tripToggle .tripMain { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .tripToggle .tripHint { font-size: 0.8rem; font-weight: 700; color: var(--accent); }
     .filtros {
       display: grid;
       gap: 10px;
       margin-bottom: 16px;
     }
+    .segment button:disabled { opacity: 0.32; cursor: default; }
     label.field { display: block; }
     label.field > span {
       display: block;
@@ -140,6 +153,13 @@
       white-space: nowrap;
     }
 
+    #masWrap { display: flex; justify-content: center; margin-top: 12px; }
+    .vermas {
+      border: 0; background: transparent; cursor: pointer;
+      color: var(--accent); font-size: 0.92rem; font-weight: 700;
+      padding: 8px 14px; border-radius: 999px;
+    }
+    .vermas:active { opacity: 0.6; }
     .msg { text-align: center; color: var(--muted); padding: 28px 10px; }
     .refreshWrap { display: flex; justify-content: center; margin: 2px 0 22px; }
     .refresh {
@@ -169,6 +189,11 @@
       <div class="sub" id="sub">Línea Mitre · hacia Retiro</div>
     </div>
   </header>
+
+  <button class="tripToggle" id="tripToggle">
+    <span class="tripMain" id="tripLabel">🚆 Martínez → Retiro</span>
+    <span class="tripHint" id="tripHint">⇄ tocá para Retiro → Tigre</span>
+  </button>
 
   <div class="filtros">
     <label class="field">
@@ -205,6 +230,7 @@
 
   <h2 class="tit">Siguientes trenes</h2>
   <div class="lista" id="lista"></div>
+  <div id="masWrap"></div>
 
   <footer>
     Datos de <a href="https://www.horariostrenes.com.ar" target="_blank" rel="noopener">horariostrenes.com.ar</a>
@@ -226,20 +252,68 @@
       selEst.appendChild(o);
     }
 
-    function bindSegment(id, key) {
-      const box = document.getElementById(id);
-      box.querySelectorAll("button").forEach(b => {
-        b.addEventListener("click", () => {
-          box.querySelectorAll("button").forEach(x => x.classList.remove("active"));
-          b.classList.add("active");
-          state[key] = b.dataset.v;
-          cargar();
-        });
-      });
+    function setActive(id, val) {
+      document.getElementById(id).querySelectorAll("button")
+        .forEach(b => b.classList.toggle("active", b.dataset.v === val));
     }
-    bindSegment("sentido", "sentido");
-    bindSegment("dia", "dia");
-    selEst.addEventListener("change", () => { state.estacion = selEst.value; cargar(); });
+
+    // En las cabeceras (Retiro / Tigre) solo existe un sentido posible.
+    function normalizarSentido() {
+      if (state.estacion === "Retiro") state.sentido = "Tigre";
+      else if (state.estacion === "Tigre") state.sentido = "Retiro";
+    }
+
+    // Viajes favoritos para el botón de cambio rápido.
+    const TRIPS = [
+      { est: "Martínez", sen: "Retiro", label: "Martínez → Retiro" },
+      { est: "Retiro", sen: "Tigre", label: "Retiro → Tigre" },
+    ];
+    let toggleNext = TRIPS[1];
+
+    // Muestra el viaje actual y anticipa a cuál cambia el botón.
+    function pintarToggle() {
+      const idx = TRIPS.findIndex(t => t.est === state.estacion && t.sen === state.sentido);
+      const mainLabel = idx !== -1 ? TRIPS[idx].label : `${state.estacion} → ${state.sentido}`;
+      toggleNext = TRIPS[idx === 0 ? 1 : 0];   // el otro favorito (si es custom, ofrece el default)
+      document.getElementById("tripLabel").textContent = "🚆 " + mainLabel;
+      document.getElementById("tripHint").textContent = "⇄ tocá para " + toggleNext.label;
+    }
+
+    // Refleja el estado en todos los controles (select, segmentos, atajos).
+    function syncControls() {
+      selEst.value = state.estacion;
+      setActive("sentido", state.sentido);
+      setActive("dia", state.dia);
+      document.getElementById("sentido").querySelectorAll("button").forEach(b => {
+        b.disabled = (state.estacion === "Retiro" && b.dataset.v === "Retiro")
+                  || (state.estacion === "Tigre" && b.dataset.v === "Tigre");
+      });
+      pintarToggle();
+    }
+
+    document.getElementById("sentido").querySelectorAll("button").forEach(b => {
+      b.addEventListener("click", () => {
+        if (b.disabled) return;
+        state.sentido = b.dataset.v;
+        syncControls();
+        cargar();
+      });
+    });
+    document.getElementById("dia").querySelectorAll("button").forEach(b => {
+      b.addEventListener("click", () => { state.dia = b.dataset.v; syncControls(); cargar(); });
+    });
+    selEst.addEventListener("change", () => {
+      state.estacion = selEst.value;
+      normalizarSentido();
+      syncControls();
+      cargar();
+    });
+    document.getElementById("tripToggle").addEventListener("click", () => {
+      state.estacion = toggleNext.est;
+      state.sentido = toggleNext.sen;
+      syncControls();
+      cargar();
+    });
 
     function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
@@ -250,6 +324,38 @@
       return mm ? `en ${h} h ${mm} min` : `en ${h} h`;
     }
 
+    // Estado de la lista de siguientes trenes (con expandir/colapsar)
+    const COLAPSADO = 5;
+    let _rest = [], _dest = "", _expanded = false;
+
+    function pintarLista() {
+      const lista = document.getElementById("lista");
+      const masWrap = document.getElementById("masWrap");
+      if (!_rest.length) {
+        lista.innerHTML = '<div class="msg">No hay más trenes por hoy.</div>';
+        masWrap.innerHTML = "";
+        return;
+      }
+      const items = _expanded ? _rest : _rest.slice(0, COLAPSADO);
+      lista.innerHTML = items.map(t => `
+        <div class="item">
+          <div class="h">${esc(t.hora)}</div>
+          <div class="m">hacia ${esc(_dest)}</div>
+          <div class="badge">${esc(fmtMin(t.en_minutos))}</div>
+        </div>`).join("");
+      if (_rest.length > COLAPSADO) {
+        masWrap.innerHTML = `<button class="vermas" id="vermas">${
+          _expanded ? "Ver menos ▲" : `Ver todos los horarios (${_rest.length}) ▼`
+        }</button>`;
+        document.getElementById("vermas").addEventListener("click", () => {
+          _expanded = !_expanded;
+          pintarLista();
+        });
+      } else {
+        masWrap.innerHTML = "";
+      }
+    }
+
     async function cargar() {
       const hero = document.getElementById("hero");
       const lista = document.getElementById("lista");
@@ -258,10 +364,11 @@
       icon.classList.add("spin");
       hero.innerHTML = '<div class="hero"><div class="cuando">Buscando trenes…</div></div>';
       lista.innerHTML = "";
+      document.getElementById("masWrap").innerHTML = "";
 
       const q = new URLSearchParams({
         estacion: state.estacion, sentido: state.sentido,
-        ramal: "tigre-retiro", dia: state.dia, limite: 6
+        ramal: "tigre-retiro", dia: state.dia, limite: 100
       });
       try {
         const r = await fetch(`/api/proximos?${q}`);
@@ -275,12 +382,10 @@
             <div class="cuando">${fmtMin(p.en_minutos)}</div>
             <div class="rec">${esc(p.recorrido.join(" · "))}</div>
           </div>`;
-        lista.innerHTML = d.proximos_trenes.slice(1).map(t => `
-          <div class="item">
-            <div class="h">${esc(t.hora)}</div>
-            <div class="m">hacia ${esc(d.sentido)}</div>
-            <div class="badge">${esc(fmtMin(t.en_minutos))}</div>
-          </div>`).join("") || '<div class="msg">No hay más trenes por hoy.</div>';
+        _rest = d.proximos_trenes.slice(1);
+        _dest = d.sentido;
+        _expanded = false;
+        pintarLista();
       } catch (e) {
         hero.innerHTML = `<div class="hero"><div class="cuando">No se pudo cargar</div><div class="rec">${esc(e.message)}</div></div>`;
       } finally {
@@ -289,6 +394,7 @@
     }
 
     document.getElementById("refresh").addEventListener("click", cargar);
+    syncControls();
     cargar();
     // refresco automático al volver a la app
     document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
