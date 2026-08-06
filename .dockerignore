@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+pagina.html
+poc_scraper.py
+.git
+.gitignore
+*.md
