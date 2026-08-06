@@ -318,7 +318,7 @@
     function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
     function fmtMin(m) {
-      if (m <= 0) return "llegando";
+      if (m <= 0) return "saliendo";
       if (m < 60) return `en ${m} min`;
       const h = Math.floor(m / 60), mm = m % 60;
       return mm ? `en ${h} h ${mm} min` : `en ${h} h`;
@@ -379,7 +379,7 @@
           <div class="hero">
             <div class="top"><span>${esc(d.estacion)} → ${esc(d.sentido)}</span><span>consulta ${esc(d.hora_consulta)}</span></div>
             <div class="hora">${esc(p.hora)}</div>
-            <div class="cuando">${fmtMin(p.en_minutos)}</div>
+            <div class="cuando">${p.en_minutos <= 0 ? "saliendo" : "sale " + fmtMin(p.en_minutos)}</div>
             <div class="rec">${esc(p.recorrido.join(" · "))}</div>
           </div>`;
         _rest = d.proximos_trenes.slice(1);

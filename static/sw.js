@@ -1,4 +1,4 @@
-const CACHE_NAME = "tren-mtz-shell-v6";
+const CACHE_NAME = "tren-mtz-shell-v7";
 const SHELL_ASSETS = [
   "/",
   "/manifest.webmanifest",
