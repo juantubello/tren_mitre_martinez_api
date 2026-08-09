@@ -17,7 +17,7 @@ import httpx
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
-from .scraper import TZ, calcular_proximos, fetch, parse
+from .scraper import TZ, _to_min, calcular_proximos, fetch, info_dia, parse
 
 app = FastAPI(
     title="API Horarios Tren",
@@ -66,6 +66,74 @@ async def proximos(
         "proximo_tren": lista[0],
         "proximos_trenes": lista[:limite],
         "fuente": url,
+    }
+
+
+@api.get("/AlexaNextRetiroTrain")
+async def alexa_next_retiro():
+    """Próximo tren Martínez → Retiro, listo para leer por voz (Alexa/HomeAssistant).
+
+    Sin parámetros: detecta solo el día (hábil / finde / feriado en Argentina).
+    """
+    info = await info_dia()
+
+    try:
+        _, html = await fetch("tigre-retiro", "Martínez", "Retiro", info["dia"])
+    except httpx.HTTPError:
+        return {
+            "mensaje": "No pude consultar los horarios en este momento.",
+            "proximo": None,
+            "minutos": None,
+            "estado": "error",
+            **_extra_dia(info),
+        }
+
+    trenes = parse(html)
+    lista = calcular_proximos(trenes)
+    if not lista:
+        return {
+            "mensaje": "No encontré horarios para hoy.",
+            "proximo": None,
+            "minutos": None,
+            "estado": "error",
+            **_extra_dia(info),
+        }
+
+    p = lista[0]
+    hora, minutos = p["hora"], p["en_minutos"]
+
+    ahora = datetime.now(TZ)
+    now_min = ahora.hour * 60 + ahora.minute
+    es_manana = (_to_min(hora) - now_min) < 0  # el servicio de hoy ya terminó
+
+    if es_manana:
+        estado = "sin_servicio"
+        mensaje = f"No hay más trenes a Retiro por hoy. El próximo es mañana a las {hora}."
+    else:
+        estado = "normal"
+        if minutos <= 0:
+            mensaje = f"El próximo tren a Retiro está llegando, a las {hora}."
+        elif minutos == 1:
+            mensaje = f"El próximo tren a Retiro llega en 1 minuto, a las {hora}."
+        else:
+            mensaje = f"El próximo tren a Retiro llega en {minutos} minutos, a las {hora}."
+
+    return {
+        "mensaje": mensaje,
+        "proximo": hora,
+        "minutos": minutos,
+        "estado": estado,
+        **_extra_dia(info),
+    }
+
+
+def _extra_dia(info: dict) -> dict:
+    """Campos informativos del día para Home Assistant (opcionales)."""
+    return {
+        "dia": info["dia"],
+        "dia_semana": info["dia_semana"],
+        "es_feriado": info["es_feriado"],
+        "feriado": info["feriado"],
     }
 
 

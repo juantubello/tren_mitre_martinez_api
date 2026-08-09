@@ -116,3 +116,62 @@ def calcular_proximos(trenes: list[dict], ahora: datetime | None = None) -> list
 
     resultado.sort(key=lambda x: x["en_minutos"])
     return resultado
+
+
+# --- Día hábil / feriado (Argentina) ---------------------------------------
+
+DIAS_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+FERIADOS_URL = "https://api.argentinadatos.com/v1/feriados/{year}"
+# Tipos de feriado en los que el tren corre horario de fin de semana (noHabil).
+# Los "puente" / "no laborable" se dejan como día hábil (el tren corre normal).
+TIPOS_NO_HABIL = {"inamovible", "trasladable"}
+
+# Cache de feriados por año: {year: (timestamp, {fecha_iso: nombre})}
+_FERIADOS_CACHE: dict = {}
+_FERIADOS_TTL = 12 * 3600  # 12 h
+
+
+async def _feriados(year: int) -> dict[str, str]:
+    """Devuelve {fecha_iso: nombre} de los feriados que cuentan como noHabil."""
+    now = time.time()
+    hit = _FERIADOS_CACHE.get(year)
+    if hit and now - hit[0] < _FERIADOS_TTL:
+        return hit[1]
+
+    fechas: dict[str, str] = {}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(FERIADOS_URL.format(year=year))
+            resp.raise_for_status()
+            for f in resp.json():
+                if f.get("tipo") in TIPOS_NO_HABIL:
+                    fechas[f["fecha"]] = f.get("nombre", "Feriado")
+    except Exception:
+        # Si falla la API, degradamos: usamos lo cacheado o nada (solo finde).
+        if hit:
+            return hit[1]
+        return {}
+
+    _FERIADOS_CACHE[year] = (now, fechas)
+    return fechas
+
+
+async def info_dia(ahora: datetime | None = None) -> dict:
+    """Determina si hoy es hábil o noHabil (finde o feriado) en Argentina."""
+    if ahora is None:
+        ahora = datetime.now(TZ)
+    weekday = ahora.weekday()  # 0 = lunes ... 6 = domingo
+    fecha_iso = ahora.date().isoformat()
+
+    feriados = await _feriados(ahora.year)
+    es_feriado = fecha_iso in feriados
+    es_finde = weekday >= 5
+
+    return {
+        "fecha": fecha_iso,
+        "dia_semana": DIAS_SEMANA[weekday],
+        "es_finde": es_finde,
+        "es_feriado": es_feriado,
+        "feriado": feriados.get(fecha_iso),
+        "dia": "noHabil" if (es_finde or es_feriado) else "habil",
+    }
