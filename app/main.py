@@ -10,19 +10,30 @@ Devuelve, para una estación (por defecto Martínez, sentido Retiro), cuál es e
 próximo tren, en cuántos minutos llega y cuáles son los siguientes.
 """
 
+import json
 from datetime import datetime
 from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .scraper import TZ, _to_min, calcular_proximos, fetch, info_dia, parse
 
+
+class UTF8JSONResponse(JSONResponse):
+    """Devuelve JSON en UTF-8 real (con ñ/acentos), sin escapar a \\uXXXX."""
+
+    def render(self, content) -> bytes:
+        return json.dumps(content, ensure_ascii=False).encode("utf-8")
+
+
 app = FastAPI(
     title="API Horarios Tren",
     description="Próximos trenes por estación, a partir de horariostrenes.com.ar.",
-    version="1.1.0",
+    version="1.2.0",
+    default_response_class=UTF8JSONResponse,
 )
 
 api = APIRouter(prefix="/api")
